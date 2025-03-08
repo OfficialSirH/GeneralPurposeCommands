@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using Photon.Pun;
 using UnityEngine;
@@ -68,13 +71,13 @@ namespace GeneralPurposeCommands.Patches
 
             string[] input = _command.Trim().ToLower().Split(" ");
             string command = input[0];
-            string[] args = new Span<string>(input, 1, input.Length - 1).ToArray();
+            string[] args = input.Length >= 2 ? new Span<string>(input, 1, input.Length - 1).ToArray() : [];
             GeneralPurposeCommands.Logger.LogInfo($"Command: {command}");
             GeneralPurposeCommands.Logger.LogInfo($"Input: {string.Join(' ', args)}");
 
             Result<string> result = command switch
             {
-                "addmoney" => AddMoney(args[0]),
+                "addmoney" => AddMoney(args),
                 "listitems" => ListItems(),
                 "spawnitem" => SpawnItem(string.Join(' ', args)),
                 _ => Result<string>.Err("NO_COMMAND_CALLED")
@@ -98,8 +101,16 @@ namespace GeneralPurposeCommands.Patches
             yield break;
         }
 
-        public static Result<string> AddMoney(string unparsedAmount)
+        public static Result<string> AddMoney(string[] args)
         {
+            if (args.Length == 0)
+            {
+                string errorMessage = "Amount is missing.";
+                GeneralPurposeCommands.Logger.LogError(errorMessage);
+                return Result<string>.Err(errorMessage);
+            }
+
+            string unparsedAmount = args[0];
             bool isParsingSuccessful = int.TryParse(unparsedAmount, out int amount);
 
             if (!isParsingSuccessful)
@@ -160,7 +171,7 @@ namespace GeneralPurposeCommands.Patches
                 Debug.Log(val3 != null ? ("Found valuable prefab in Resources/Valuables. Using '" + itemCategory + "'.") : ("Valuable prefab not found in Resources/Valuables; using '" + itemCategory + "' folder."));
                 if (SemiFunc.IsMultiplayer())
                 {
-                    PhotonNetwork.InstantiateRoomObject(itemCategory + val.prefab.name, spawnLocation, identity);
+                    InstantiateRoomObject(itemCategory + val.prefab.name, spawnLocation, identity);
                 }
                 else
                 {
@@ -183,7 +194,7 @@ namespace GeneralPurposeCommands.Patches
             {
                 if (SemiFunc.IsMultiplayer())
                 {
-                    PhotonNetwork.InstantiateRoomObject(foundPath, spawnLocation, identity);
+                    InstantiateRoomObject(foundPath, spawnLocation, identity);
                 }
                 else
                 {
@@ -227,6 +238,39 @@ namespace GeneralPurposeCommands.Patches
                 return loadedItemPrefab;
             }
             return null;
+        }
+
+        // This method is a copy of the original Instantiate method from PhotonNetwork but avoids checking if the user is the host.
+        public static GameObject InstantiateRoomObject(string prefabName, Vector3 position, Quaternion rotation, byte group = 0, object[] data = null)
+        {
+            if (PhotonNetwork.CurrentRoom == null)
+            {
+                Debug.LogError("Can not Instantiate before the client joined/created a room.");
+                return null;
+            }
+
+            //return PhotonNetwork.NetworkInstantiate(
+            //    new InstantiateParameters(prefabName, position, rotation, group, data, 0, null, PhotonNetwork.LocalPlayer, PhotonNetwork.ServerTimestamp), 
+            //    true, 
+            //    false
+            //);
+            try
+            {
+                return (GameObject)
+                    GetMethod(typeof(PhotonNetwork), "NetworkInstantiate", typeof(InstantiateParameters))
+                    .Invoke(null, [new InstantiateParameters(prefabName, position, rotation, group, data, 0, null, PhotonNetwork.LocalPlayer, PhotonNetwork.ServerTimestamp), true, false]);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e); 
+                return null;
+            }
+        }
+
+        public static MethodInfo GetMethod(Type type, String name, Type uniqueParamType)
+        {
+            IEnumerable<MethodInfo> m = type.GetRuntimeMethods().Where(x => x.Name.Equals(name));
+            return (from r in m let p = r.GetParameters() where p.Any(o => uniqueParamType.IsAssignableFrom(o.ParameterType)) select r).ToList()[0];
         }
     }
 }
