@@ -3,44 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using GeneralPurposeCommands.Utilities;
 using HarmonyLib;
 using Photon.Pun;
 using UnityEngine;
-
-public class Result<T>
-{
-    public bool IsOk { get; set; }
-    public T Value { get; set; }
-    public string ErrorMessage { get; set; }
-
-    public Result(T value)
-    {
-        IsOk = true;
-        Value = value;
-    }
-
-    public Result(string errorMessage)
-    {
-        IsOk = false;
-        ErrorMessage = errorMessage;
-    }
-
-    public static Result<T> Ok(T value) => new(value);
-
-    public static Result<T> Err(string errorMessage) => new(errorMessage);
-
-    public void Match(Action<Result<T>> Ok, Action<Result<T>> Err)
-    {
-        if (IsOk)
-        {
-            Ok(this);
-        }
-        else
-        {
-            Err(this);
-        }
-    }
-}
 
 namespace GeneralPurposeCommands.Patches
 {
@@ -53,7 +19,7 @@ namespace GeneralPurposeCommands.Patches
         public void Awake()
         {
             if (instance == null)
-            { 
+            {
                 instance = this;
                 return;
             }
@@ -72,22 +38,21 @@ namespace GeneralPurposeCommands.Patches
             string[] input = _command.Trim().ToLower().Split(" ");
             string command = input[0];
             string[] args = input.Length >= 2 ? new Span<string>(input, 1, input.Length - 1).ToArray() : [];
-            GeneralPurposeCommands.Logger.LogInfo($"Command: {command}");
-            GeneralPurposeCommands.Logger.LogInfo($"Input: {string.Join(' ', args)}");
 
             Result<string> result = command switch
             {
                 "addmoney" => AddMoney(args),
                 "listitems" => ListItems(),
-                "spawnitem" => SpawnItem(string.Join(' ', args)),
+                "spawnitem" => SpawnItem(args),
                 _ => Result<string>.Err("NO_COMMAND_CALLED")
             };
 
             result.Match(
                Ok: result => instance.StartCoroutine(SendMessage(result.Value)),
-               Err: err => {
-                   if (!err.ErrorMessage.Equals("NO_COMMAND_CALLED")) 
-                   { 
+               Err: err =>
+               {
+                   if (!err.ErrorMessage.Equals("NO_COMMAND_CALLED"))
+                   {
                        instance.StartCoroutine(SendMessage(err.ErrorMessage));
                    }
                }
@@ -138,8 +103,23 @@ namespace GeneralPurposeCommands.Patches
             return Result<string>.Ok("Check Logs");
         }
 
-        private static Result<string> SpawnItem(string unparsedSearchName)
+        private static Result<string> SpawnItem(string[] args)
         {
+            int spawnCount = 1;
+            string unparsedSearchName = "";
+            if (args.Length > 1)
+            {
+                bool isSuccessful = int.TryParse(args[^1], out spawnCount);
+                if (isSuccessful)
+                {
+                    unparsedSearchName = args[..^1].Aggregate((x, y) => x + " " + y);
+                }
+                else
+                {
+                    unparsedSearchName = args.Aggregate((x, y) => x + " " + y);
+                }
+            }
+
             if (string.IsNullOrEmpty(unparsedSearchName))
             {
                 Debug.LogWarning("Item name is empty!");
@@ -171,14 +151,16 @@ namespace GeneralPurposeCommands.Patches
                 Debug.Log(val3 != null ? ("Found valuable prefab in Resources/Valuables. Using '" + itemCategory + "'.") : ("Valuable prefab not found in Resources/Valuables; using '" + itemCategory + "' folder."));
                 if (SemiFunc.IsMultiplayer())
                 {
-                    InstantiateRoomObject(itemCategory + val.prefab.name, spawnLocation, identity);
+                    for (int i = 0; i < spawnCount; i++)
+                        InstantiateRoomObject(itemCategory + val.prefab.name, spawnLocation + transform.up * i * 0.2f, identity);
                 }
                 else
                 {
                     GameObject val4 = Resources.Load<GameObject>(itemCategory + val.prefab.name);
                     if (val4 != null)
                     {
-                        Instantiate(val4, spawnLocation, identity);
+                        for (int i = 0; i < spawnCount; i++)
+                            Instantiate(val4, spawnLocation + transform.up * i * 0.2f, identity);
                     }
                     else
                     {
@@ -194,14 +176,16 @@ namespace GeneralPurposeCommands.Patches
             {
                 if (SemiFunc.IsMultiplayer())
                 {
-                    InstantiateRoomObject(foundPath, spawnLocation, identity);
+                    for (int i = 0; i < spawnCount; i++)
+                        InstantiateRoomObject(foundPath, spawnLocation + transform.up * i * 0.2f, identity);
                 }
                 else
                 {
                     GameObject loadedValuable = Resources.Load<GameObject>(foundPath);
                     if (loadedValuable != null)
                     {
-                        Instantiate(loadedValuable, spawnLocation, identity);
+                        for (int i = 0; i < spawnCount; i++)
+                            Instantiate(loadedValuable, spawnLocation + transform.up * i * 0.2f, identity);
                     }
                     else
                     {
@@ -262,7 +246,7 @@ namespace GeneralPurposeCommands.Patches
             }
             catch (Exception e)
             {
-                Debug.LogError(e); 
+                Debug.LogError(e);
                 return null;
             }
         }

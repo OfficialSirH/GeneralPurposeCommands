@@ -10,7 +10,7 @@ public class GeneralPurposeCommands : BaseUnityPlugin
 {
     private const string modGUID = "com.sirh.plugin.generalpurposecommands";
     private const string modName = "General Purpose Commands";
-    private const string modVersion = "1.0.0";
+    private const string modVersion = "1.1.0";
 
     private readonly Harmony harmony = new(modGUID);
 
