@@ -5,7 +5,7 @@ This mod provides utility commands for more control over your gameplay.
 ## Commands
 
 - `addmoney <amount>`: Adds the specified amount of money to the current game's run.
-- `spawnitem <item_name> [amount]`: Spawns an item with the specified name and amount.
+- `spawnitem <item_name>`: Spawns an item with the specified name.
 - `listitems`: Lists all items that can be spawned.
 
 ## Installation
