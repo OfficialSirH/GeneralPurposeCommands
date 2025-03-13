@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>GeneralPurposeCommands</AssemblyName>
     <Product>General Purpose Commands</Product>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
@@ -28,6 +28,12 @@
 	  </Reference>
 	  <Reference Include="PhotonRealtime">
 		  <HintPath>libs/PhotonRealtime.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Unity.TextMeshPro">
+		  <HintPath>libs/Unity.TextMeshPro.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Unity.InputSystem">
+		  <HintPath>libs/Unity.InputSystem.dll</HintPath>
 	  </Reference>
   </ItemGroup>
   

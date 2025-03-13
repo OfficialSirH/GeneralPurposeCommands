@@ -2,6 +2,7 @@
 using BepInEx.Logging;
 using HarmonyLib;
 using GeneralPurposeCommands.Patches;
+using UnityEngine;
 
 namespace GeneralPurposeCommands;
 
@@ -18,7 +19,7 @@ public class GeneralPurposeCommands : BaseUnityPlugin
 
     public static new ManualLogSource Logger;
 
-    private void Awake()
+    public void Awake()
     {
         if (Instance == null)
         {
@@ -30,6 +31,8 @@ public class GeneralPurposeCommands : BaseUnityPlugin
         Logger.LogInfo($"General Purpose Commands is loaded!");
 
         harmony.PatchAll(typeof(GeneralPurposeCommands));
-        harmony.PatchAll(typeof(GeneralPurposeCommandsPatch));
+        harmony.PatchAll(typeof(Commands));
+        harmony.PatchAll(typeof(MessageSystem));
+        harmony.PatchAll(typeof(ChatControl));
     }
 }

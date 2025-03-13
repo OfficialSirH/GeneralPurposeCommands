@@ -12,29 +12,11 @@ namespace GeneralPurposeCommands.Patches
 {
     [HarmonyPatch(typeof(SemiFunc))]
     [HarmonyPatch("Command")]
-    public class GeneralPurposeCommandsPatch : MonoBehaviour
+    public class Commands : MonoBehaviour
     {
-        public static GeneralPurposeCommandsPatch instance;
-
-        public void Awake()
-        {
-            if (instance == null)
-            {
-                instance = this;
-                return;
-            }
-            Destroy(this);
-
-        }
-
         [HarmonyPostfix]
         public static void Additional_Command(string _command)
         {
-            if (instance == null)
-            {
-                instance = new GameObject("GeneralPurposeCommandsPatch").AddComponent<GeneralPurposeCommandsPatch>();
-            }
-
             string[] input = _command.Trim().ToLower().Split(" ");
             string command = input[0];
             string[] args = input.Length >= 2 ? new Span<string>(input, 1, input.Length - 1).ToArray() : [];
@@ -47,24 +29,31 @@ namespace GeneralPurposeCommands.Patches
                 _ => Result<string>.Err("NO_COMMAND_CALLED")
             };
 
-            result.Match(
-               Ok: result => instance.StartCoroutine(SendMessage(result.Value)),
-               Err: err =>
-               {
-                   if (!err.ErrorMessage.Equals("NO_COMMAND_CALLED"))
+            try
+            {
+                result.Match(
+                   Ok: result => MessageSystem.Instance.SendMessage(result.Value),
+                   Err: err =>
                    {
-                       instance.StartCoroutine(SendMessage(err.ErrorMessage));
+                       if (!err.ErrorMessage.Equals("NO_COMMAND_CALLED"))
+                       {
+                           MessageSystem.Instance.SendMessage(err.ErrorMessage);
+                       }
                    }
-               }
-               );
+                   );
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
         }
 
-        public static new IEnumerator SendMessage(string message)
-        {
-            yield return new WaitForSeconds(2);
-            PlayerAvatar.instance.ChatMessageSend(message, false);
-            yield break;
-        }
+        //public static new IEnumerator SendMessage(string message)
+        //{
+        //    yield return new WaitForSeconds(2);
+        //    PlayerAvatar.instance.ChatMessageSend(message, false);
+        //    yield break;
+        //}
 
         public static Result<string> AddMoney(string[] args)
         {
@@ -107,7 +96,7 @@ namespace GeneralPurposeCommands.Patches
         {
             int spawnCount = 1;
             string unparsedSearchName = "";
-            if (args.Length > 1)
+            if (args.Length > 0)
             {
                 bool isSuccessful = int.TryParse(args[^1], out spawnCount);
                 if (isSuccessful)
@@ -117,6 +106,7 @@ namespace GeneralPurposeCommands.Patches
                 else
                 {
                     unparsedSearchName = args.Aggregate((x, y) => x + " " + y);
+                    spawnCount = 1;
                 }
             }
 
@@ -233,11 +223,6 @@ namespace GeneralPurposeCommands.Patches
                 return null;
             }
 
-            //return PhotonNetwork.NetworkInstantiate(
-            //    new InstantiateParameters(prefabName, position, rotation, group, data, 0, null, PhotonNetwork.LocalPlayer, PhotonNetwork.ServerTimestamp), 
-            //    true, 
-            //    false
-            //);
             try
             {
                 return (GameObject)
