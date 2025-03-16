@@ -6,16 +6,12 @@ using UnityEngine;
 
 namespace GeneralPurposeCommands;
 
-[BepInPlugin(modGUID, modName, modVersion)]
-public class GeneralPurposeCommands : BaseUnityPlugin
+[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+public class Plugin : BaseUnityPlugin
 {
-    private const string modGUID = "com.sirh.plugin.generalpurposecommands";
-    private const string modName = "General Purpose Commands";
-    private const string modVersion = "1.1.0";
+    private readonly Harmony harmony = new(MyPluginInfo.PLUGIN_GUID);
 
-    private readonly Harmony harmony = new(modGUID);
-
-    private static GeneralPurposeCommands Instance;
+    private static Plugin Instance;
 
     public static new ManualLogSource Logger;
 
@@ -30,7 +26,7 @@ public class GeneralPurposeCommands : BaseUnityPlugin
         Logger = base.Logger;
         Logger.LogInfo($"General Purpose Commands is loaded!");
 
-        harmony.PatchAll(typeof(GeneralPurposeCommands));
+        harmony.PatchAll(typeof(Plugin));
         harmony.PatchAll(typeof(Commands));
         harmony.PatchAll(typeof(MessageSystem));
         harmony.PatchAll(typeof(ChatControl));

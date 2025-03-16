@@ -60,7 +60,7 @@ namespace GeneralPurposeCommands.Patches
             if (args.Length == 0)
             {
                 string errorMessage = "Amount is missing.";
-                GeneralPurposeCommands.Logger.LogError(errorMessage);
+                Plugin.Logger.LogError(errorMessage);
                 return Result<string>.Err(errorMessage);
             }
 
@@ -70,14 +70,14 @@ namespace GeneralPurposeCommands.Patches
             if (!isParsingSuccessful)
             {
                 string errorMessage = "Amount must be an integer type number.";
-                GeneralPurposeCommands.Logger.LogError(errorMessage);
+                Plugin.Logger.LogError(errorMessage);
                 return Result<string>.Err(errorMessage);
             }
 
             SemiFunc.StatSetRunCurrency(SemiFunc.StatGetRunCurrency() + amount);
 
             string message = $"New Total: {SemiFunc.StatGetRunCurrency()}";
-            GeneralPurposeCommands.Logger.LogInfo(message);
+            Plugin.Logger.LogInfo(message);
             return Result<string>.Ok(message);
         }
 
