@@ -1,7 +1,7 @@
 {
   "name": "GeneralPurposeCommands",
   "description": "Provides utility commands.",
-  "version_number": "1.2.0",
+  "version_number": "1.2.1",
   "website_url": "https://github.com/OfficialSirH/GeneralPurposeCommands",
   "dependencies": ["BepInEx-BepInExPack-5.4.2100"]
 }
