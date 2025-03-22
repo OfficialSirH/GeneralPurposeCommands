@@ -95,31 +95,31 @@ namespace GeneralPurposeCommands.Patches
         private static Result<string> SpawnItem(string[] args)
         {
             int spawnCount = 1;
-            string unparsedSearchName = "";
+            string searchName = "";
             if (args.Length > 0)
             {
                 bool isSuccessful = int.TryParse(args[^1], out spawnCount);
                 if (isSuccessful)
                 {
-                    unparsedSearchName = args[..^1].Aggregate((x, y) => x + " " + y);
+                    searchName = args[..^1].Aggregate((x, y) => x + " " + y);
                 }
                 else
                 {
-                    unparsedSearchName = args.Aggregate((x, y) => x + " " + y);
+                    searchName = args.Aggregate((x, y) => x + " " + y);
                     spawnCount = 1;
                 }
             }
 
-            if (string.IsNullOrEmpty(unparsedSearchName))
+            if (string.IsNullOrEmpty(searchName))
             {
                 Debug.LogWarning("Item name is empty!");
                 return Result<string>.Err("nuh uh");
             }
-            string searchName = unparsedSearchName.Trim();
+            searchName = searchName.Trim();
             Item val = null;
             foreach (Item value in StatsManager.instance.itemDictionary.Values)
             {
-                if (string.Equals(value.itemAssetName, searchName, StringComparison.OrdinalIgnoreCase) || string.Equals(value.itemName, searchName, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(value.itemAssetName, searchName, StringComparison.OrdinalIgnoreCase) || string.Equals(value.itemName.Trim(), searchName, StringComparison.OrdinalIgnoreCase))
                 {
                     val = value;
                     break;
