@@ -7,6 +7,7 @@ using GeneralPurposeCommands.Utilities;
 using HarmonyLib;
 using Photon.Pun;
 using UnityEngine;
+using static UnityEngine.InputSystem.InputRemoting;
 
 namespace GeneralPurposeCommands.Patches
 {
@@ -17,8 +18,8 @@ namespace GeneralPurposeCommands.Patches
         [HarmonyPostfix]
         public static void Additional_Command(string _command)
         {
-            string[] input = _command.Trim().ToLower().Split(" ");
-            string command = input[0];
+            string[] input = _command.Trim().Split(" ");
+            string command = input[0].ToLower();
             string[] args = input.Length >= 2 ? new Span<string>(input, 1, input.Length - 1).ToArray() : [];
 
             Result<string> result = command switch
@@ -87,6 +88,20 @@ namespace GeneralPurposeCommands.Patches
             foreach (Item value in StatsManager.instance.itemDictionary.Values)
             {
                 message += value.itemName + "\n";
+            }
+            message += "\nValuables:\n";
+            string[] shapeCategories = ["01 Tiny", "02 Small", "03 Medium", "04 Big", "05 Wide", "06 Tall", "07 Very Tall"];
+            foreach (string shapeCategory in shapeCategories)
+            {
+                foreach (GameObject valuable in Resources.LoadAll<GameObject>("Valuables/" + shapeCategory))
+                {
+                    message += valuable.name.Replace("Valuable ", string.Empty) + "\n";
+                }
+            }
+            message += "\nRemoved Items:\n";
+            foreach (GameObject removedItem in Resources.LoadAll<GameObject>("Items/Removed Items"))
+            {
+                message += removedItem.name + "\n";
             }
             Debug.Log(message);
             return Result<string>.Ok("Check Logs");
@@ -193,15 +208,18 @@ namespace GeneralPurposeCommands.Patches
         private static GameObject TryLoadValuablePrefab(string searchName, out string foundPath)
         {
             foundPath = "";
-            string[] array = ["01 Tiny", "02 Small", "03 Medium", "04 Big", "05 Wide", "06 Tall", "07 Very Tall"];
-            foreach (string shapeCategory in array)
+            string[] shapeCategories = ["01 Tiny", "02 Small", "03 Medium", "04 Big", "05 Wide", "06 Tall", "07 Very Tall"];
+            foreach (string shapeCategory in shapeCategories)
             {
-                string valuablesPath = "Valuables/" + shapeCategory + "/" + searchName;
-                GameObject loadedPrefab = Resources.Load<GameObject>(valuablesPath);
-                if (loadedPrefab != null)
+                string valuablePath = "Valuables/" + shapeCategory + "/";
+                foreach (GameObject valuable in Resources.LoadAll<GameObject>("Valuables/" + shapeCategory))
                 {
-                    foundPath = valuablesPath;
-                    return loadedPrefab;
+                    string valuableName = valuable.name.Replace("Valuable ", string.Empty);
+                    if (string.Equals(valuableName, searchName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foundPath = valuablePath + valuable.name;
+                        return valuable;
+                    }
                 }
             }
             string itemsPath = "Items/Removed Items/" + searchName;

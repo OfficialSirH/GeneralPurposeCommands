@@ -1,3 +1,3 @@
-## Changes between v1.2.0 and v1.2.1
+## Changes between v1.2.1 and v1.3.0
 
-- Handles cases where game item names may have trailing whitespaces
+- `spawnitem` command now supports (properly) spawning valuables/removed items.

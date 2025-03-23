@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>GeneralPurposeCommands</AssemblyName> <!-- PLUGIN_GUID -->
     <Product>General Purpose Commands</Product> <!-- PLUGIN_NAME -->
-    <Version>1.2.0</Version> <!-- PLUGIN_VERSION -->
+    <Version>1.3.0</Version> <!-- PLUGIN_VERSION -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
